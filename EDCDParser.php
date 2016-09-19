@@ -40,7 +40,7 @@ class EDCDParser
 
             $i = 0;
             for ($i=0;$i<count($elmArr);) {
-            $row = $elmArr[$i];
+                $row = $elmArr[$i];
                 if (strlen($row) < 1) {
                     $i++;
                     continue;
@@ -89,8 +89,20 @@ class EDCDParser
                         }
                     } else { // second row
                         $i++;
-                        preg_match("/^[\s]{13}([\w\s]{43})([\w]{1})([\d\s]{5})(?:\s{1}([\w\d\.]{2,8}))*/", $elmArr[$i], $matches);
-                        
+                        if(strlen($elmArr[$i]) < 1) {
+                            continue;
+                        }
+                        preg_match("/[\s]{12}([\w\s]{43})([\w]{1})([\d\s]{5})(?:\s{1}([\w\d\.]{2,8}))*/", $elmArr[$i], $matches);
+                        if(!isset($matches[1])) {
+                            $i++;
+                            continue;
+                        }
+                        $dataElement['elementName'].= " ".trim($matches[1]);
+                        $dataElement['elementCondition'] = $matches[2];
+                        $dataElement['elementRepetition'] = trim($matches[3]);
+                        if (isset($matches[4])) {
+                            $dataElement['elementType'] = trim($matches[4]);
+                        }
                     }
 
                     $dataElements[]= $dataElement;
