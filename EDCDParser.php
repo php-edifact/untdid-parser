@@ -46,9 +46,9 @@ class EDCDParser
                     continue;
                 }
 
-                // segment name
+                // segment name, change indicator
                 if ($segmentCode === '') {
-                    $result = preg_match("/[\s]{7}([A-Z0-9]{4})\s+([A-Z\s]+)/", $row, $codeArr);
+                    $result = preg_match("/[\s]{4}.{1}[\s]{2}([A-Z0-9]{4})\s+([A-Z\s]+)/", $row, $codeArr);
                     $segmentCode = $codeArr[1];
                     $segmentTitle = $codeArr[2];
                     $i++;
@@ -69,22 +69,30 @@ class EDCDParser
                     }
                 }
 
-                // element list           
-                if (preg_match("/[\d]{3}\s{4}([\w]{4})\s([\w\s]{43})([\w]{1})([\d\s]{5})(?:\s{1}([\w\d\.]{4,8}))*/", $elmArr[$i], $matches)) {
+                // element list, change indicator
+                if (preg_match("/[\d]{3}.{4}([\w]{4})\s([\w\s]{10,43})(?:([\w]{1})([\d\s]{5}))?(?:\s{1}([\w\d\.]{2,8}))*/", $elmArr[$i], $matches)) {
                     $dataElement=[
                         'elementId' => $matches[1],
-                        'elementName' => trim($matches[2]),
-                        'elementCondition' => $matches[3],
-                        'elementRepetition' => trim($matches[4])
+                        'elementName' => trim($matches[2])
                     ];
                     if ($matches[1]{0} == 'C') {
                         $dataElement['composite'] = true;
                     } else {
                         $dataElement['composite'] = false;
                     }
-                    if (isset($matches[5])) {
-                        $dataElement['elementType'] = trim($matches[5]);
+                    
+                    if (isset($matches[3])) {
+                        $dataElement['elementCondition'] = $matches[3];
+                        $dataElement['elementRepetition'] = trim($matches[4]);
+                        if (isset($matches[5])) {
+                            $dataElement['elementType'] = trim($matches[5]);
+                        }
+                    } else { // second row
+                        $i++;
+                        preg_match("/^[\s]{13}([\w\s]{43})([\w]{1})([\d\s]{5})(?:\s{1}([\w\d\.]{2,8}))*/", $elmArr[$i], $matches);
+                        
                     }
+
                     $dataElements[]= $dataElement;
                 }
                 $i++;
