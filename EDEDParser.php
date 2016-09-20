@@ -25,6 +25,8 @@ class EDEDParser
 
     private function process ($filePath) {
         $fileLines = file_get_contents($filePath);
+        $fileLines = preg_replace('/[\xC4]/', '-', $fileLines);
+
         $ededArr = preg_split('/[-]{70}/', $fileLines);
         
         unset($ededArr[0]);
@@ -48,7 +50,7 @@ class EDEDParser
 
             $i = 0;
             for ($i=0;$i<count($elmArr);) {
-            $row = $elmArr[$i];
+                $row = $elmArr[$i];
                 if (strlen($row) < 1) {
                     $i++;
                     continue;
@@ -64,7 +66,7 @@ class EDEDParser
                     continue;
                 }
 
-                if($elementDescription === '' && preg_match("/[\s]{5}Desc: (.*)/", $row, $matches)) {
+                if($elementDescription === '' && preg_match("/.{1}\s{4}Desc: (.*)/", $row, $matches)) {
                     $elementDescription = $matches[1];
                     $i++;
                     while (strlen($elmArr[$i])>1) {
@@ -79,7 +81,8 @@ class EDEDParser
                 }
 
                 if ($elementType === '') {
-                    $result = preg_match("/^\s{5}Repr: (a?n?)[\.]*(\d+)/", $row, $codeArr);
+                    $result = preg_match("/^.{1}\s{4}Repr: (a?n?)[\.]*(\d+)/", $row, $codeArr);
+                    if(!isset($codeArr[1]))var_dump($row);
                     $elementType = trim($codeArr[1]);
                     $elementMaxSize = trim($codeArr[2]);
                     $i++;

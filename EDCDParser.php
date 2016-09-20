@@ -25,6 +25,8 @@ class EDCDParser
 
     private function process ($filePath) {
         $fileLines = file_get_contents($filePath);
+        $fileLines = preg_replace('/[\xC4]/', '-', $fileLines);       
+
         $edcdArr = preg_split('/[-]{70}/', $fileLines);
         
         unset($edcdArr[0]);

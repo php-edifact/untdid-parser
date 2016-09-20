@@ -25,6 +25,8 @@ class UNCLParser
 
     private function process ($filePath) {
         $fileLines = file_get_contents($filePath);
+        $fileLines = preg_replace('/[\xC4]/', '-', $fileLines);
+
         $unclArr = preg_split('/[-]{70}/', $fileLines);
         
         unset($unclArr[0]);
