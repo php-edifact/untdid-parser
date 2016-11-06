@@ -1,5 +1,5 @@
 # untdid-parser
-Parse and convert to XML UN/EDIFACT Directories.
+Parse and convert UN/EDIFACT Directories to XML. UNTDID stands for "United Nations Trade Data Interchange Directory".
 
 Example:
 
@@ -14,3 +14,8 @@ Supported documents:
 * Composite data element directory Batch (EDCD)
 * Data element directory (EDED)
 * Code list (UNCL)
+* Service codes (UNSL for v3, SL for v4)
+
+The Directories are released on the UNECE website: https://www.unece.org/cefact/edifact/welcome.html
+
+The service codes instead are released on the ISO Joint Working Group website: http://www.gefeg.com/jswg/

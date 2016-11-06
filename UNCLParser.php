@@ -130,7 +130,7 @@ class UNCLParser
             $defXML->addAttribute('id', $elementCode);
             foreach ($elementValues as $codes) {
                 $cdefXML = $defXML->addChild('code');
-                $cdefXML->addAttribute('id', $codes['value']);
+                $cdefXML->addAttribute('id', utf8_encode($codes['value']));
                 $cdefXML->addAttribute('title', utf8_encode($codes['title']));
                 $cdefXML->addAttribute('desc', utf8_encode($codes['descr']));
             }
