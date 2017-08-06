@@ -48,7 +48,6 @@ if(!file_exists($edition.'/composite_data_elements.xml')) {
     } else {
         echo 'failed edcd';
     }
-    
     $p = new EDCDParser($edition."/EDCD.".$y);
     file_put_contents($edition."/composite_data_elements.xml", $p->getXML());
 }
@@ -117,6 +116,9 @@ foreach($dir as $file) {
         continue;
     }
     $name = substr($file, 0, 6);
+    if ($name == "EDMDI1" || $name == "EDMDI2") {
+        continue;
+    }
     $p = new EDMDParser($edition."/EDMD/".$file);
     $data = $p->getXML();
     if(!file_exists($edition."/messages")) {

@@ -51,7 +51,7 @@ class EDSDParser
                 // segment name
                 if ($segmentCode === '') {
                     $result = preg_match("/[\s]{4}.{1,3}[\s]{0,2}([A-Z]{3})\s+(.+)/", $row, $codeArr);
-                    if(!isset($codeArr[1])) {var_dump($row);die();}
+                    if(!isset($codeArr[1])) {var_dump($row);}
                     $segmentCode = $codeArr[1];
                     $segmentTitle = $codeArr[2];
                     $i++;

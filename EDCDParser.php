@@ -28,7 +28,7 @@ class EDCDParser
         $fileLines = preg_replace('/[\xC4]/', '-', $fileLines);       
 
         $edcdArr = preg_split('/[-]{70}/', $fileLines);
-        
+
         unset($edcdArr[0]);
         
         foreach ($edcdArr as $edcdElm) {
@@ -50,7 +50,7 @@ class EDCDParser
 
                 // segment name, change indicator
                 if ($segmentCode === '') {
-                    $result = preg_match("/[\s]{4}.{1}[\s]{2}([A-Z0-9]{4})\s+([A-Z\s]+)/", $row, $codeArr);
+                    $result = preg_match("/[\s]{4}.{1,3}[\s]{0,2}([A-Z0-9]{4})\s+([A-Z\s]+)/", $row, $codeArr);
                     $segmentCode = $codeArr[1];
                     $segmentTitle = $codeArr[2];
                     $i++;

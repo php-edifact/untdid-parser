@@ -58,6 +58,18 @@ class UNCLParser
 
                 if ($elementCode === '') {
                     $result = preg_match("/^(.{5})([0-9\s]{6})(.{56})\[([A-Z]?)\]/", $row, $codeArr);
+                    if(!isset($codeArr[1])) {
+                        $result = preg_match("/^(.{5})([0-9\s]{6})(.*)/", $row, $codeArr);
+                        $elementStatus = trim($codeArr[1]);
+                        $elementCode = trim($codeArr[2]);
+                        $elementTitle = trim($codeArr[3]);
+                        $i++;
+                        $result = preg_match("/^[\s]{11}(.*)\[([A-Z]?)\]/", $elmArr[$i], $codeArr2);
+                        $elementTitle .= " ".trim($codeArr2[1]);
+                        $elementUse = $codeArr2[2];
+                        $i++;
+                        continue;
+                    }
                     $elementStatus = trim($codeArr[1]);
                     $elementCode = trim($codeArr[2]);
                     $elementTitle = trim($codeArr[3]);
