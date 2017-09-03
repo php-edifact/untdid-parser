@@ -1,17 +1,26 @@
 <?php
-include 'EDSDParser.php';
-include 'EDMDParser.php';
-include 'EDCDParser.php';
-include 'EDEDParser.php';
-include 'UNCLParser.php';
-include 'UNSLParser.php';
-
 
 $y = '09B';
 
 if(php_sapi_name() === "cli" && isset($argv[1])) {
     $y = $argv[1];
 }
+
+include 'EDMDParser.php';
+include 'UNSLParser.php';
+
+$folder = '';
+if ($y == '99A' || (substr($y, 0, 2) < 99 && substr($y, 0, 2) > 80)) {
+    $folder = 'pre99B/';
+}
+
+include $folder.'EDSDParser.php';
+include $folder.'EDCDParser.php';
+include $folder.'EDEDParser.php';
+include $folder.'UNCLParser.php';
+
+
+
 
 $edition ='D'.$y;
 
@@ -31,6 +40,7 @@ if(!file_exists($edition.'/simple_segments.xml')) {
     }
     
     $p = new EDSDParser($edition."/EDSD.".$y);
+
     file_put_contents($edition."/simple_segments.xml", $p->getXML());
 }
 
@@ -185,6 +195,9 @@ foreach ($xml->segment as $seg)
 		        if($child2->getName()=="data_element")
 		        {
 		            $result = $data_elm->xpath('*[@id="'.$child2["id"].'"]');
+		            if (count($result)<1) {
+		                var_dump($child2["id"]); die();
+		            }
 		            foreach ($result[0]->attributes() as $k => $v)
 		            {
 		                if($k=="id") {

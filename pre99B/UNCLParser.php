@@ -57,15 +57,15 @@ class UNCLParser
                 }
 
                 if ($elementCode === '') {
-                    $result = preg_match("/^(.{5})([0-9\s]{6})(.{56})\[([A-Z]?)\]/", $row, $codeArr);
+                    $result = preg_match("/^(.{2})([0-9\s]{6})(.{59})\[([A-Z]?)\]/", $row, $codeArr);
                     if(!isset($codeArr[1])) {
-                        $result = preg_match("/^(.{5})([0-9\s]{6})(.*)/", $row, $codeArr);
+                        $result = preg_match("/^(.{2})([0-9\s]{6})(.*)/", $row, $codeArr);
 
                         $elementStatus = trim($codeArr[1]);
                         $elementCode = trim($codeArr[2]);
                         $elementTitle = trim($codeArr[3]);
                         $i++;
-                        $result = preg_match("/^[\s]{11}(.*)\[([A-Z]?)\]/", $elmArr[$i], $codeArr2);
+                        $result = preg_match("/^[\s]{8}(.*)\[([A-Z]?)\]/", $elmArr[$i], $codeArr2);
                         $elementTitle .= " ".trim($codeArr2[1]);
                         $elementUse = $codeArr2[2];
                         $i++;
@@ -79,11 +79,11 @@ class UNCLParser
                     continue;
                 }
 
-                if($elementDescription === '' && preg_match("/[\s]{5}Desc: (.*)/", $row, $matches)) {
+                if($elementDescription === '' && preg_match("/[\s]{2}Desc: (.*)/", $row, $matches)) {
                     $elementDescription = $matches[1];
                     $i++;
                     while (strlen($elmArr[$i])>1) {
-                        if (preg_match("/^[\s]{11}(.*)/", $elmArr[$i], $matches)) {
+                        if (preg_match("/^[\s]{8}(.*)/", $elmArr[$i], $matches)) {
                             $elementDescription .= " ".$matches[1];
                             $i++;
                         } else {
@@ -94,16 +94,16 @@ class UNCLParser
                 }
 
                 if ($elementType === '') {
-                    $result = preg_match("/^\s{5}Repr: (a?n?)[\.]*(\d+)/", $row, $codeArr);
+                    $result = preg_match("/^\s{2}Repr: (a?n?)[\.]*(\d+)/", $row, $codeArr);
                     $elementType = trim($codeArr[1]);
                     $elementMaxSize = trim($codeArr[2]);
                     $i++;
                     continue;
                 }
 
-                if(preg_match("/(.{5})(.{5})\s(.*)/", $row, $matches)) {
+                if(preg_match("/(.{3})(.{6})\s(.*)/", $row, $matches)) {
                     $valueChange = trim($matches[1]);
-                    $valueValue = $matches[2];
+                    $valueValue = trim($matches[2]);
                     $valueTitle = $matches[3];
                     $valueDescription = '';
                     $i++;
@@ -111,13 +111,13 @@ class UNCLParser
                         continue;
                     }
                     while (strlen($elmArr[$i])>1) {
-                        if (preg_match("/^[\s]{14}(.*)/", $elmArr[$i], $matches)) {
+                        if (preg_match("/^[\s]{13}(.*)/", $elmArr[$i], $matches)) {
                             if ($valueDescription != '') {
                                 $valueDescription .= " ";
                             }
                             $valueDescription .= $matches[1];
                             $i++;
-                        } else if (preg_match("/^[\s]{11}(.*)/", $elmArr[$i], $matches)) {
+                        } else if (preg_match("/^[\s]{10}(.*)/", $elmArr[$i], $matches)) {
                             if (trim($matches[1]) =="Note:") {
                                 break;
                             }
