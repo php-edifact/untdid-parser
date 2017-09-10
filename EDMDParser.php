@@ -93,18 +93,13 @@ class EDMDParser
             if (strlen($line)<10) continue;
 
             //line, code, descr, mandatory, repetition, grouping
-            $intervals = array(7, 4, 42, 4, 5, 8);
+            //$intervals = array(7, 4, 42, 4, 5, 8);
+            
+            preg_match("/(\d{4,5})\s+([\w\s]{4})(.{41})(.{2})\s+(\d{1,5})(.*)/", $line, $parts);
+            array_shift($parts);
 
-            $start = 0;
-            $parts = array();
-
-            foreach ($intervals as $i)
-            {
-                $parts[] = trim(mb_substr($line, $start, $i));
-                $start += $i;
-            }
-
-            if (!preg_match('/(\d+)/', $parts[0])) {
+            $parts = array_map('trim', $parts);
+            if (count($parts) < 1 || !preg_match('/(\d+)/', $parts[0])) {
                 continue;
             }
 
@@ -123,9 +118,7 @@ class EDMDParser
             
             $segment = $this->createSegment($parts);
 
-            if (!isset($currentIndex[$currentLevel+1]) || $currentIndex[$currentLevel+1] == null) {
-               $this->arrRecursion($arrayXml, $currentLevel, 0, $segment, $currentIndex);
-            }
+            $this->arrRecursion($arrayXml, $currentLevel, 0, $segment, $currentIndex);
 
             if ($parts[1] != '' && (strpos($parts[2], 'Segment group') === false) && (strpos($parts[5], '-') !== false) ) {
                 $level = str_replace('-', '', $parts[5]);
@@ -142,7 +135,7 @@ class EDMDParser
             }
         }
 
-        // construct the XML
+        // build the XML
         $this->recurse($arrayXml, $this->msgXML, $groupsArr);
         return $arrayXml;
     }

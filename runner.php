@@ -24,7 +24,13 @@ include $folder.'UNCLParser.php';
 
 $edition ='D'.$y;
 
-if(!file_exists($edition.'/simple_segments.xml')) {
+if(!file_exists('generated/'.$edition)) {
+    mkdir('generated/'.$edition, 0777, true);
+}
+if(!file_exists('generated/'.$edition."/messages")) {
+    mkdir('generated/'.$edition."/messages", 0777, true);
+}
+
     $zip = new ZipArchive;
     if ($zip->open($edition.'/EDSD.ZIP') === TRUE) {
         $zip->extractTo($edition.'/');
@@ -36,15 +42,17 @@ if(!file_exists($edition.'/simple_segments.xml')) {
         $zip->extractTo($edition.'/');
         $zip->close();
     } else {
-        echo 'failed edsd';
+        die('failed edsd extraction');
     }
     
-    $p = new EDSDParser($edition."/EDSD.".$y);
-
-    file_put_contents($edition."/simple_segments.xml", $p->getXML());
+if(!file_exists($edition."/EDSD.".$y)) {
+    die('No edsd file existing');
 }
 
-if(!file_exists($edition.'/composite_data_elements.xml')) {
+    $p = new EDSDParser($edition."/EDSD.".$y);
+
+    file_put_contents('generated/'.$edition."/simple_segments.xml", $p->getXML());
+
     $zip = new ZipArchive;
     if ($zip->open($edition.'/EDCD.ZIP') === TRUE) {
         $zip->extractTo($edition.'/');
@@ -59,10 +67,8 @@ if(!file_exists($edition.'/composite_data_elements.xml')) {
         echo 'failed edcd';
     }
     $p = new EDCDParser($edition."/EDCD.".$y);
-    file_put_contents($edition."/composite_data_elements.xml", $p->getXML());
-}
+    file_put_contents('generated/'.$edition."/composite_data_elements.xml", $p->getXML());
 
-if(!file_exists($edition.'/data_elements.xml')) {
     $zip = new ZipArchive;
     if ($zip->open($edition.'/EDED.ZIP') === TRUE) {
         $zip->extractTo($edition.'/');
@@ -78,10 +84,8 @@ if(!file_exists($edition.'/data_elements.xml')) {
     }
     
     $p = new EDEDParser($edition."/EDED.".$y);
-    file_put_contents($edition."/data_elements.xml", $p->getXML());
-}
+    file_put_contents('generated/'.$edition."/data_elements.xml", $p->getXML());
 
-if(!file_exists($edition.'/codes.xml')) {
     $zip = new ZipArchive;
     if ($zip->open($edition.'/UNCL.ZIP') === TRUE) {
         $zip->extractTo($edition.'/');
@@ -97,28 +101,25 @@ if(!file_exists($edition.'/codes.xml')) {
     }
     
     $p = new UNCLParser($edition."/UNCL.".$y);
-    file_put_contents($edition."/codes.xml", $p->getXML());
-}
+    file_put_contents('generated/'.$edition."/codes.xml", $p->getXML());
 
-
-if(!file_exists($edition.'/EDMD')) {
     $zip = new ZipArchive;
-    if ($zip->open($edition.'/EDMD.ZIP') === TRUE) {
+    if(!file_exists($edition.'/EDMD')) {
         mkdir($edition.'/EDMD', 0777, true);
+    }
+    if ($zip->open($edition.'/EDMD.ZIP') === TRUE) {
         $zip->extractTo($edition.'/EDMD');
         $zip->close();
     } else if ($zip->open($edition.'/Edmd.zip') === TRUE) {
-        mkdir($edition.'/EDMD', 0777, true);
         $zip->extractTo($edition.'/EDMD');
         $zip->close();
     } else if ($zip->open($edition.'/edmd.zip') === TRUE) {
-        mkdir($edition.'/EDMD', 0777, true);
         $zip->extractTo($edition.'/EDMD');
         $zip->close();
     } else {
         echo 'failed edmd';
     }
-}
+
 
 $dir = scandir($edition."/EDMD");
 foreach($dir as $file) {
@@ -131,17 +132,15 @@ foreach($dir as $file) {
     }
     $p = new EDMDParser($edition."/EDMD/".$file);
     $data = $p->getXML();
-    if(!file_exists($edition."/messages")) {
-        mkdir($edition."/messages", 0777, true);
-    }
-    file_put_contents($edition."/messages/".strtolower($name).".xml", $data);
+
+    file_put_contents('generated/'.$edition."/messages/".strtolower($name).".xml", $data);
 }
 
 /* XML MERGE */
 
-$xml=simplexml_load_file($edition."/simple_segments.xml");
-$data_elm=simplexml_load_file($edition."/data_elements.xml");
-$compdata_elm=simplexml_load_file($edition."/composite_data_elements.xml");
+$xml=simplexml_load_file('generated/'.$edition."/simple_segments.xml");
+$data_elm=simplexml_load_file('generated/'.$edition."/data_elements.xml");
+$compdata_elm=simplexml_load_file('generated/'.$edition."/composite_data_elements.xml");
 
 foreach ($xml->segment as $seg)
 {
@@ -219,7 +218,10 @@ $dom->preserveWhiteSpace = false;
 $dom->formatOutput = true;
 $dom->loadXML($msg);
 $result = $dom->saveXML();
-file_put_contents($edition."/segments.xml",$result);
+file_put_contents('generated/'.$edition."/segments.xml",$result);
+unlink('generated/'.$edition."/simple_segments.xml");
+unlink('generated/'.$edition."/data_elements.xml");
+unlink('generated/'.$edition."/composite_data_elements.xml");
 
 function xml_adopt($root, $new, $namespace = null) {
     // first add the new node
