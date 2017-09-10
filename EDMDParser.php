@@ -22,20 +22,33 @@ class EDMDParser
         
         $this->msgXML = $result;
     }
-
+    
+    private function arrRecursion (&$arr, $level, $counter, $segment, $currentIndex) {
+        if ($counter < $level) {
+            $counter++;
+            return $this->arrRecursion($arr[$currentIndex[$counter]], $level, $counter, $segment, $currentIndex);
+        }
+        if ($level == $counter) {
+            $arr[] = $segment;
+            return $arr;
+        }
+    }
+            
     private function process ($filePath) {
         $fileLines = file($filePath);
 
         $skip = true;
         $currentLevel = 0;
+        $currentIndex = [0=>null];
         $currentIndex1=null;
         $currentIndex2=null;
         $currentIndex3=null;
+        $currentIndex4=null;
 
         $arrayXml=[];
         $defaults = [];
         $groupsArr = [];
-
+            
         $defXML = $this->msgXML->addChild("defaults");
 
         foreach($fileLines as $line) {
@@ -80,7 +93,7 @@ class EDMDParser
             if (strlen($line)<10) continue;
 
             //line, code, descr, mandatory, repetition, grouping
-            $intervals = array(7, 4, 42, 4, 4, 9);
+            $intervals = array(7, 4, 42, 4, 5, 8);
 
             $start = 0;
             $parts = array();
@@ -90,70 +103,41 @@ class EDMDParser
                 $parts[] = trim(mb_substr($line, $start, $i));
                 $start += $i;
             }
-                
-            if ($parts[1] == '' && (strpos($parts[2], 'group') !== false)) {
+
+            if (!preg_match('/(\d+)/', $parts[0])) {
+                continue;
+            }
+
+            if ($parts[1] == '' && (strpos($parts[2], 'Segment group') !== false)) {
                 $level = str_replace('-', '', $parts[5]);
                 $currentLevel++;
                 preg_match( '/(\d+)/', $parts[2], $matches);
                 $sgIndex = "SG".$matches[1];
-                
                 if(!in_array($sgIndex,$groupsArr)) {
                     $parts[1] = $sgIndex;
                     $groupsArr[$sgIndex]=$this->createSegment($parts, false);
                 }
-                
-                if($currentIndex1===null) {
-                    $currentIndex1 = $sgIndex;
-                    continue;
-                }
-                if($currentIndex1!==null && $currentIndex2===null) {
-                    $currentIndex2 = $sgIndex;
-                    continue;
-                }
-                if($currentIndex1!==null && $currentIndex2!==null && $currentIndex3===null) {
-                    $currentIndex3 = $sgIndex;
-                    continue;
-                }
+                $currentIndex[$currentLevel] = $sgIndex;
+                continue;
             }
             
-            if($currentIndex1!==null && $currentIndex2!==null && $currentIndex3!==null) {
-                $arrayXml[$currentIndex1][$currentIndex2][$currentIndex3][]=$this->createSegment($parts);
-            }
-            if($currentIndex1!==null && $currentIndex2!==null && $currentIndex3===null) {
-                $arrayXml[$currentIndex1][$currentIndex2][]=$this->createSegment($parts);
-            }
-            if($currentIndex1!==null && $currentIndex2===null && $currentIndex3===null) {
-                $arrayXml[$currentIndex1][]=$this->createSegment($parts);
-            }
-            if($currentIndex1===null && $currentIndex2===null && $currentIndex3===null) {
-                $arrayXml[]=$this->createSegment($parts);
+            $segment = $this->createSegment($parts);
+
+            if (!isset($currentIndex[$currentLevel+1]) || $currentIndex[$currentLevel+1] == null) {
+               $this->arrRecursion($arrayXml, $currentLevel, 0, $segment, $currentIndex);
             }
 
-            if ($parts[1] != '' && (strpos($parts[2], 'group') === false) && (strpos($parts[5], '-') !== false) ) {
+            if ($parts[1] != '' && (strpos($parts[2], 'Segment group') === false) && (strpos($parts[5], '-') !== false) ) {
                 $level = str_replace('-', '', $parts[5]);
 
                 $levelsToRemove = substr_count($level,'+');
                 $currentLevel-=$levelsToRemove;
-
-                if($currentIndex1!==null && $currentIndex2!==null && $currentIndex3!==null) {
-                    $currentIndex3 = null;
+                $kmax = max(array_keys($currentIndex));
+                for ($k = $kmax; $k>0; $k--) {
+                    $currentIndex[$k] = null;
                     $levelsToRemove--;
                     if($levelsToRemove==0)
-                        continue;
-                }
-
-                if($currentIndex1!==null && $currentIndex2!==null) {
-                    $currentIndex2 = null;
-                    $levelsToRemove--;
-                    if($levelsToRemove==0)
-                        continue;
-                }
-
-                if($currentIndex1!==null) {
-                    $currentIndex1 = null;
-                    $levelsToRemove--;
-                    if($levelsToRemove==0)
-                        continue;
+                        break;
                 }
             }
         }
