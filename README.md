@@ -15,9 +15,18 @@ php runner.php 99B
 ```
 
 ```
+for i in {97..99}; do
+php runner.php ${i}A; 
+php runner.php ${i}B; 
+done
 for i in {0..9}; do
 php runner.php 0${i}A; 
 php runner.php 0${i}B; 
+done
+php runner.php 01C; 
+for i in {10..22}; do
+php runner.php ${i}A; 
+php runner.php ${i}B; 
 done
 ```
 

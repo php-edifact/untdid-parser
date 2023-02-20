@@ -99,7 +99,7 @@ class EDMDParser
             //line, code, descr, mandatory, repetition, grouping
             //$intervals = array(7, 4, 42, 4, 5, 8);
             
-            preg_match("/(\d{4,5})\s+([\w\s]{4})(.{41})(.{2})\s+(\d{1,5})(.*)/", $line, $parts);
+            preg_match("/(\d{4,5})[X\*\+\|\s]+([\w\s]{4})(.{41})(.{2})\s+(\d{1,5})(.*)/", $line, $parts);
             array_shift($parts);
 
             $parts = array_map('trim', $parts);

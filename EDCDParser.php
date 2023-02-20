@@ -113,7 +113,9 @@ class EDCDParser
             }
 
             $defXML->addAttribute('id', $segmentCode);
-            $defXML->addAttribute('name', lcfirst(str_replace(" ", "", ucwords(strtolower($segmentTitle)))));
+            $segmentTitle = lcfirst(str_replace(" ", "", ucwords(strtolower($segmentTitle))));
+            $segmentTitle = str_replace("/", "Or", $segmentTitle);
+            $defXML->addAttribute('name', $segmentTitle);
             $defXML->addAttribute('desc', $segmentFunction);
             foreach ($dataElements as $childs) {
                 $ctype = 'data_element';

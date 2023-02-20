@@ -122,7 +122,9 @@ class EDEDParser
             }
 
             $defXML->addAttribute('id', $elementCode);
-            $defXML->addAttribute('name', lcfirst(str_replace(" ", "", ucwords(strtolower($elementTitle)))));
+            $elementTitle = lcfirst(str_replace(" ", "", ucwords(strtolower($elementTitle))));
+            $elementTitle = str_replace("/", "Or", $elementTitle);
+            $defXML->addAttribute('name', $elementTitle);
             $defXML->addAttribute('usage', $elementUse);
             $defXML->addAttribute('desc', $elementDescription);
             $defXML->addAttribute('type', $elementType);
