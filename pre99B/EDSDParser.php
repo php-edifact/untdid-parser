@@ -73,7 +73,7 @@ class EDSDParser
                 }
 
                 // element list           
-                if (preg_match("/^[\d]{3}[\w\s]{3}([\w]{4})\s{2}(.{10,47})([\w]{1})/", $elmArr[$i], $matches)) {
+                if (preg_match("/^[\d]{3}[\w\*\+\|\s]{3}([\w]{4})\s{2}(.{10,47})([\w]{1})/", $elmArr[$i], $matches)) {
                     //var_dump($matches);
                     $dataElement=[
                         'elementId' => $matches[1],
