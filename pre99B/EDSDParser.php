@@ -80,7 +80,7 @@ class EDSDParser
                         'elementName' => trim($matches[2])
                     ];
 
-                    if ($matches[1]{0} == 'C') {
+                    if ($matches[1][0] == 'C') {
                         $dataElement['composite'] = true;
                     } else {
                         $dataElement['composite'] = false;

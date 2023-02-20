@@ -8,6 +8,20 @@ $p = new EDMDParser('D00A/EDMD/CODECO_D.00A');
 echo $p->getXML();
 ```
 
+The runner.php automates data extraction for all documents in a single zipped directory on a best effort basis:
+
+```
+php runner.php 99B
+```
+
+```
+for i in {0..9}; do
+php runner.php 0${i}A; 
+php runner.php 0${i}B; 
+done
+```
+
+
 Supported documents:
 * Message type directory Batch (EDMD)
 * Segment directory Batch (EDSD)
@@ -16,6 +30,6 @@ Supported documents:
 * Code list (UNCL)
 * Service codes (UNSL for v3, SL for v4)
 
-The Directories are released on the UNECE website: https://www.unece.org/cefact/edifact/welcome.html
+The Directories are released on the UNECE website: https://unece.org/trade/uncefact/unedifact/download
 
 The service codes instead are released on the ISO Joint Working Group website: http://www.gefeg.com/jswg/

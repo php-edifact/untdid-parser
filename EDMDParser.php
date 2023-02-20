@@ -33,8 +33,12 @@ class EDMDParser
             return $arr;
         }
     }
-            
+
     private function process ($filePath) {
+        if (is_dir($filePath)) {
+            echo $filePath. "is a directory";
+            return [];
+        }
         $fileLines = file($filePath);
 
         $skip = true;

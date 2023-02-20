@@ -72,12 +72,12 @@ class EDCDParser
                 }
 
                 // element list, change indicator
-                if (preg_match("/[\d]{3}.{3}([\w]{4})\s{2}([\w\s]{10,47})([\w]{1})/", $elmArr[$i], $matches)) {
+                if (preg_match("/[\d]{3}.{3}([\w]{4})\s{2}([\w\s\/]{10,47})([\w]{1})/", $elmArr[$i], $matches)) {
                     $dataElement=[
                         'elementId' => $matches[1],
                         'elementName' => trim($matches[2])
                     ];
-                    if ($matches[1]{0} == 'C') {
+                    if ($matches[1][0] == 'C') {
                         $dataElement['composite'] = true;
                     } else {
                         $dataElement['composite'] = false;

@@ -73,13 +73,13 @@ class EDSDParser
                 }
 
                 // element list           
-                if (preg_match("/[\d]{3}[\w\s]{4}([\w]{4})\s(.{10,43})(?:([\w]{1})([\d\s]{5}))?(?:\s{1}([\w\d\.]{3,8}))*/", $elmArr[$i], $matches)) {
+                if (preg_match("/[\d]{3}\s[\s\w]{1}\s{2}([\w]{4})\s(.{10,43})(?:([\w]{1})([\d\s]{5}))?(?:\s{1}([\w\d\.]{3,8}))*/", $elmArr[$i], $matches)) {
                     $dataElement=[
                         'elementId' => $matches[1],
                         'elementName' => trim($matches[2])
                     ];
 
-                    if ($matches[1]{0} == 'C') {
+                    if ($matches[1][0] == 'C') {
                         $dataElement['composite'] = true;
                     } else {
                         $dataElement['composite'] = false;
