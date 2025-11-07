@@ -3,12 +3,20 @@
 class EDMDParser
 {
     private $msgXML;
+    private $errors = [];
+    private $warnings = [];
 
     public function __construct ($filePath)
     {
         $this->msgXML = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8" standalone="yes"?><message></message>');
 
-        $arrayXml = $this->process($filePath);
+        try {
+            $this->validateInput($filePath);
+            $this->process($filePath);
+        } catch (Exception $e) {
+            $this->errors[] = "Critical error in EDMDParser: " . $e->getMessage();
+            throw $e;
+        }
 
         $msg = $this->msgXML->asXML();
         $dom = new DOMDocument('1.0', 'utf-8');
@@ -19,10 +27,10 @@ class EDMDParser
         $dom_xml = $dom->importNode($dom_xml, true);
         $dom_xml = $dom->appendChild($dom_xml);
         $result = $dom->saveXML();
-        
+
         $this->msgXML = $result;
     }
-    
+
     private function arrRecursion (&$arr, $level, $counter, $segment, $currentIndex) {
         if ($counter < $level) {
             $counter++;
@@ -34,12 +42,35 @@ class EDMDParser
         }
     }
 
+    private function validateInput($filePath)
+    {
+        if (!file_exists($filePath)) {
+            throw new Exception("EDMD file not found: $filePath");
+        }
+
+        if (!is_readable($filePath)) {
+            throw new Exception("EDMD file is not readable: $filePath");
+        }
+
+        $fileSize = filesize($filePath);
+        if ($fileSize === 0) {
+            throw new Exception("EDMD file is empty: $filePath");
+        }
+
+        if ($fileSize > 50 * 1024 * 1024) { // 50MB limit
+            throw new Exception("EDMD file is too large: $filePath (" . round($fileSize / 1024 / 1024, 2) . " MB)");
+        }
+    }
+
     private function process ($filePath) {
         if (is_dir($filePath)) {
-            echo $filePath. "is a directory";
-            return [];
+            $this->errors[] = "$filePath is a directory";
+            return;
         }
         $fileLines = file($filePath);
+        if ($fileLines === false) {
+            throw new Exception("Failed to read file: $filePath");
+        }
 
         $skip = true;
         $currentLevel = 0;
@@ -52,7 +83,7 @@ class EDMDParser
         $arrayXml=[];
         $defaults = [];
         $groupsArr = [];
-            
+
         $defXML = $this->msgXML->addChild("defaults");
 
         foreach($fileLines as $line) {
@@ -98,7 +129,7 @@ class EDMDParser
 
             //line, code, descr, mandatory, repetition, grouping
             //$intervals = array(7, 4, 42, 4, 5, 8);
-            
+
             preg_match("/(\d{4,5})[X\*\+\|\s]+([\w\s]{4})(.{41})(.{2})\s+(\d{1,5})(.*)/", $line, $parts);
             array_shift($parts);
 
@@ -119,7 +150,7 @@ class EDMDParser
                 $currentIndex[$currentLevel] = $sgIndex;
                 continue;
             }
-            
+
             $segment = $this->createSegment($parts);
 
             $this->arrRecursion($arrayXml, $currentLevel, 0, $segment, $currentIndex);
@@ -154,7 +185,7 @@ class EDMDParser
                 if(isset($arr['required'])) {
                     $segXML->addAttribute('required', 'true');
                 }
-                
+
             } else {
                 $tempArr = $groupsArr[$idx];
                 $groupXML = $xml->addChild("group");
@@ -170,7 +201,7 @@ class EDMDParser
     }
 
     private function createSegment($parts, $name = true) {
-        
+
         $arr = [
             'id' => $parts[1],
             'maxrepeat'=> str_replace('-', '', $parts[4])
@@ -183,8 +214,24 @@ class EDMDParser
         }
         return $arr;
     }
-    
+
     public function getXML() {
         return $this->msgXML;
+    }
+
+    public function getErrors() {
+        return $this->errors;
+    }
+
+    public function getWarnings() {
+        return $this->warnings;
+    }
+
+    public function hasErrors() {
+        return !empty($this->errors);
+    }
+
+    public function hasWarnings() {
+        return !empty($this->warnings);
     }
 }

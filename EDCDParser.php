@@ -3,12 +3,20 @@
 class EDCDParser
 {
     private $msgXML;
+    private $errors = [];
+    private $warnings = [];
 
     public function __construct ($filePath)
     {
         $this->msgXML = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8" standalone="yes"?><composite_data_elements></composite_data_elements>');
 
-        $arrayXml = $this->process($filePath);
+        try {
+            $this->validateInput($filePath);
+            $this->process($filePath);
+        } catch (Exception $e) {
+            $this->errors[] = "Critical error in EDCDParser: " . $e->getMessage();
+            throw $e;
+        }
 
         $msg = $this->msgXML->asXML();
         $dom = new DOMDocument('1.0', 'utf-8');
@@ -19,18 +27,45 @@ class EDCDParser
         $dom_xml = $dom->importNode($dom_xml, true);
         $dom_xml = $dom->appendChild($dom_xml);
         $result = $dom->saveXML();
-        
+
         $this->msgXML = $result;
+    }
+
+    private function validateInput($filePath)
+    {
+        if (!file_exists($filePath)) {
+            throw new Exception("EDCD file not found: $filePath");
+        }
+
+        if (!is_readable($filePath)) {
+            throw new Exception("EDCD file is not readable: $filePath");
+        }
+
+        $fileSize = filesize($filePath);
+        if ($fileSize === 0) {
+            throw new Exception("EDCD file is empty: $filePath");
+        }
+
+        if ($fileSize > 50 * 1024 * 1024) { // 50MB limit
+            throw new Exception("EDCD file is too large: $filePath (" . round($fileSize / 1024 / 1024, 2) . " MB)");
+        }
     }
 
     private function process ($filePath) {
         $fileLines = file_get_contents($filePath);
-        $fileLines = preg_replace('/[\xC4]/', '-', $fileLines);       
+        if ($fileLines === false) {
+            throw new Exception("Failed to read file: $filePath");
+        }
+        $fileLines = preg_replace('/[\xC4]/', '-', $fileLines);
 
         $edcdArr = preg_split('/[-]{70}/', $fileLines);
 
+        if (count($edcdArr) < 2) {
+            $this->warnings[] = "File may not be properly formatted - found only " . count($edcdArr) . " sections";
+        }
+
         unset($edcdArr[0]);
-        
+
         foreach ($edcdArr as $edcdElm) {
             $elmArr = preg_split('/[\r\n]+/', $edcdElm);
             $segmentCode = '';
@@ -51,12 +86,16 @@ class EDCDParser
                 // segment name, change indicator
                 if ($segmentCode === '') {
                     $result = preg_match("/[\s]{4}.{1,3}[\s]{0,2}([A-Z0-9]{4})\s+([A-Z\s]+)/", $row, $codeArr);
+                    if (!$result || !isset($codeArr[1])) {
+                        $this->warnings[] = "Could not parse segment header: $row";
+                        break;
+                    }
                     $segmentCode = $codeArr[1];
                     $segmentTitle = $codeArr[2];
                     $i++;
                     continue;
                 }
-                
+
                 // function
                 if($segmentFunction === '' && preg_match("/[\s]{7}Desc: (.*)/", $row, $matches)) {
                     $segmentFunction = $matches[1];
@@ -82,7 +121,7 @@ class EDCDParser
                     } else {
                         $dataElement['composite'] = false;
                     }
-                    
+
                     if (isset($matches[3])) {
                         $dataElement['elementCondition'] = $matches[3];
                         $dataElement['elementRepetition'] = trim($matches[4]);
@@ -135,5 +174,21 @@ class EDCDParser
 
     public function getXML() {
         return $this->msgXML;
+    }
+
+    public function getErrors() {
+        return $this->errors;
+    }
+
+    public function getWarnings() {
+        return $this->warnings;
+    }
+
+    public function hasErrors() {
+        return !empty($this->errors);
+    }
+
+    public function hasWarnings() {
+        return !empty($this->warnings);
     }
 }
